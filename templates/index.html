@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WVideoFlow — Smart Video Auto Editor & Silence Remover</title>
+<meta name="description" content="WVideoFlow: Batch video editor with AI prompt automation, silence removal, transitions, intro/outro, watermark logo, HandBrake compression, and low-spec CPU throttling">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ═══════ TOP BAR ═══════ -->
+<header id="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <span class="logo-icon">🎬</span>
+      <div class="logo-text-group">
+        <span class="logo-text">WVideoFlow</span>
+        <span class="logo-sub">v2.0 • AI & Low-Resource Engine</span>
+      </div>
+    </div>
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="input"       data-i18n="navInput">Input</button>
+      <button class="tab-btn"        data-tab="ai"          data-i18n="navAi">🤖 AI Studio</button>
+      <button class="tab-btn"        data-tab="keys"        data-i18n="navKeys">🔑 Key Management</button>
+      <button class="tab-btn"        data-tab="transitions" data-i18n="navTransitions">Transitions</button>
+      <button class="tab-btn"        data-tab="settings"    data-i18n="navSettings">Settings</button>
+      <button class="tab-btn"        data-tab="outputs"     data-i18n="navOutputs">Outputs & History</button>
+      <button class="tab-btn"        data-tab="process"     data-i18n="navProcess">Process</button>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-ghost icon-only" onclick="openWelcomeModal()" title="About / Instructions">❓</button>
+    <div class="dev-contact-badge" title="Developer Contact">
+      📧 <a href="mailto:wa2latia@gmail.com" style="color:inherit;text-decoration:none;">wa2latia@gmail.com</a>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn"        data-lang="ar" onclick="setLang('ar')">عر</button>
+      <button class="lang-btn"        data-lang="fr" onclick="setLang('fr')">FR</button>
+    </div>
+    <div id="globalStatus" class="status-pill idle">
+      <span class="status-dot"></span>
+      <span data-i18n="idle">Idle</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════ SYSTEM MONITOR STRIP ═══════ -->
+<div id="systemMonitorStrip" class="sys-monitor-bar">
+  <div class="sys-item"><span class="sys-icon">⚡</span> <span data-i18n="sysCpu">CPU</span>: <strong id="sysCpuVal">0%</strong></div>
+  <div class="sys-item"><span class="sys-icon">🧠</span> <span data-i18n="sysRam">RAM</span>: <strong id="sysRamVal">0%</strong></div>
+  <div class="sys-item"><span class="sys-icon">🧩</span> <span data-i18n="sysCores">Cores</span>: <strong id="sysCoresVal">4</strong></div>
+  <div class="sys-item status-badge" id="sysStatusBadge"><span class="sys-icon">🟢</span> <span id="sysStatusText">System Normal</span></div>
+</div>
+
+<!-- ═══════ MAIN CONTENT ═══════ -->
+<main id="mainContent">
+
+  <!-- ─── TAB: INPUT ─── -->
+  <section class="tab-panel active" id="tab-input">
+    
+    <!-- UX GUIDED WORKFLOW STEPPER BANNER -->
+    <div class="stepper-banner card full-width">
+      <div class="stepper-title" data-i18n="stepperHeaderTitle">🚀 4-Step Guided Video Editing Workflow</div>
+      <div class="stepper-steps">
+        <div class="step-badge active"><span data-i18n="step1Title">STEP 1: Choose Workflow Mode 🛠️</span></div>
+        <div class="step-arrow">➔</div>
+        <div class="step-badge"><span data-i18n="step2Title">STEP 2: Select Media & Files 📁</span></div>
+        <div class="step-arrow">➔</div>
+        <div class="step-badge"><span data-i18n="step3Title">STEP 3: AI Prompt & Fine-Tuning 🤖</span></div>
+        <div class="step-arrow">➔</div>
+        <div class="step-badge"><span data-i18n="step4Title">STEP 4: Process Video 🚀</span></div>
+      </div>
+    </div>
+
+    <!-- MASTER WORKFLOW MODE SELECTOR DROPDOWN -->
+    <div class="workflow-selector-card card full-width">
+      <div class="mode-header-row">
+        <span class="mode-icon">🛠️</span>
+        <label for="workflowModeSelect" class="mode-label" data-i18n="selectModeLabel">Select Editing Workflow Mode</label>
+      </div>
+      <select id="workflowModeSelect" class="mode-dropdown" onchange="onWorkflowModeChange(this.value)">
+        <option value="master" data-i18n="modeMaster">🔀 Full Auto Pipeline (Silence + Intro/Outro + Logo + Transitions)</option>
+        <option value="compress" data-i18n="modeCompress">🗜️ Video Compression & Optimization (HandBrake Presets)</option>
+        <option value="silence" data-i18n="modeSilence">🔇 Silence Removal & Cutting</option>
+        <option value="intro_outro" data-i18n="modeIntroOutro">🎬 Intro & Outro Welding</option>
+        <option value="watermark" data-i18n="modeWatermark">🔖 Watermark & Logo Overlay (Static or Animated)</option>
+        <option value="slideshow" data-i18n="modeSlideshow">🖼️ Photo Slideshow Album + Audio Track</option>
+      </select>
+      
+      <!-- Mode Description Box -->
+      <div id="modeDescriptionBox" class="mode-desc-box"></div>
+    </div>
+
+    <!-- AI STUDIO QUICK LINK CARD ON HOME PAGE -->
+    <div class="card full-width key-shortcut-card" id="aiHomeShortcutCard">
+      <div class="key-shortcut-body">
+        <div>
+          <strong data-i18n="aiStudioTitle">🤖 AI Prompt-to-Edit Studio</strong>
+          <p data-i18n="aiStudioSub">Control your entire video studio using natural language commands powered by AI.</p>
+        </div>
+        <button class="btn-primary small" onclick="switchToTab('ai')" data-i18n="openAiStudioBtn">Open AI Studio 🤖 ➔</button>
+      </div>
+    </div>
+
+    <div class="input-grid">
+
+      <!-- Input Folder (For Video Modes) -->
+      <div class="card full-width" id="inputFolderCard">
+        <div class="card-label" data-i18n="inputFolderLabel">Input Folder</div>
+        <div class="path-row">
+          <input type="text" id="inputFolderPath" class="path-input"
+                 data-i18n="inputFolderPlaceholder" data-i18n-attr="placeholder"
+                 placeholder="Browse or paste folder path...">
+          <button class="btn-icon" onclick="openBrowser('inputFolder')" title="Browse">📁</button>
+          <button class="btn-primary small" onclick="scanFolder()" data-i18n="scanBtn">Scan Folder</button>
+        </div>
+      </div>
+
+      <!-- HandBrake Style Compression Card -->
+      <div class="card full-width" id="compressCard" style="display:none">
+        <div class="card-label" data-i18n="compressTitle">HandBrake-Style Video Compression Settings</div>
+        <div class="settings-group">
+          <div class="form-row">
+            <label data-i18n="compressPreset">Compression Preset</label>
+            <select id="compressPreset" onchange="onCompressPresetChange(this.value)">
+              <option value="handbrake_fast_720p" data-i18n="presetFast720">Fast 720p HD (Recommended)</option>
+              <option value="handbrake_very_fast_1080p" data-i18n="presetVeryFast1080">Very Fast 1080p Full HD</option>
+              <option value="handbrake_discord" data-i18n="presetDiscord">Small File Size (Discord / Email &lt; 25MB)</option>
+              <option value="handbrake_custom" data-i18n="presetCustom">Custom Resolution & Quality</option>
+            </select>
+          </div>
+          <div class="setting-item" id="crfSettingItem">
+            <label data-i18n="crfLabel">Video Quality (CRF) <span id="crfValBadge" class="val-badge">23</span></label>
+            <div class="range-row">
+              <input type="range" id="crfRange" min="18" max="32" value="23"
+                     oninput="document.getElementById('crfValBadge').textContent=this.value">
+            </div>
+            <div class="hint" data-i18n="crfHint">Lower CRF = Higher Quality</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo Slideshow Album Options Card -->
+      <div class="card full-width" id="slideshowCard" style="display:none">
+        <div class="card-label" data-i18n="modeSlideshow">Photo Slideshow Album Options</div>
+        <div class="settings-group">
+          <div class="form-row">
+            <label data-i18n="audioTrackLabel">Background Audio Track (MP3/WAV/AAC)</label>
+            <div class="file-pick-row">
+              <div class="file-name-display" id="slideshowAudioDisplay" data-i18n="noFileSelected">No audio selected</div>
+              <button class="btn-icon" onclick="openBrowser('slideshowAudio')" title="Browse">🎵</button>
+              <button class="btn-ghost tiny" onclick="clearFile('slideshowAudio')" data-i18n="clearFile">Clear</button>
+            </div>
+          </div>
+          <div class="setting-item">
+            <label data-i18n="slideDurLabel">Duration per Photo (seconds) <span id="slideDurBadge" class="val-badge">3.0s</span></label>
+            <div class="range-row">
+              <input type="range" id="slideDurRange" min="1.0" max="10.0" step="0.5" value="3.0"
+                     oninput="document.getElementById('slideDurBadge').textContent=this.value+'s'">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video List -->
+      <div class="card full-width" id="videoListCard" style="display:none">
+        <div class="card-header-row">
+          <div class="card-label" id="videoCountLabel">0 files found</div>
+          <div class="list-actions">
+            <button class="btn-ghost small" onclick="selectAllVideos(true)" data-i18n="selectAll">Select All</button>
+            <button class="btn-ghost small" onclick="selectAllVideos(false)" data-i18n="deselectAll">Deselect All</button>
+          </div>
+        </div>
+        <div id="videoList" class="video-list"></div>
+      </div>
+
+      <!-- Intro -->
+      <div class="card" id="introCard">
+        <div class="card-label" data-i18n="introLabel">Intro Clip</div>
+        <div class="file-pick-row">
+          <div class="file-name-display" id="introDisplay" data-i18n="noFileSelected">No file selected</div>
+          <button class="btn-icon" onclick="openBrowser('intro')" title="Browse">📂</button>
+          <button class="btn-ghost tiny" onclick="clearFile('intro')" data-i18n="clearFile">Clear</button>
+        </div>
+        <video id="introPreview" class="mini-preview" controls style="display:none"></video>
+      </div>
+
+      <!-- Outro -->
+      <div class="card" id="outroCard">
+        <div class="card-label" data-i18n="outroLabel">Outro Clip</div>
+        <div class="file-pick-row">
+          <div class="file-name-display" id="outroDisplay" data-i18n="noFileSelected">No file selected</div>
+          <button class="btn-icon" onclick="openBrowser('outro')" title="Browse">📂</button>
+          <button class="btn-ghost tiny" onclick="clearFile('outro')" data-i18n="clearFile">Clear</button>
+        </div>
+        <video id="outroPreview" class="mini-preview" controls style="display:none"></video>
+      </div>
+
+      <!-- Logo / Watermark -->
+      <div class="card" id="logoCard">
+        <div class="card-label" data-i18n="logoLabel">Logo / Watermark</div>
+        <div class="file-pick-row">
+          <div class="file-name-display" id="logoDisplay" data-i18n="noFileSelected">No file selected</div>
+          <button class="btn-icon" onclick="openBrowser('logo')" title="Browse">🖼️</button>
+          <button class="btn-ghost tiny" onclick="clearFile('logo')" data-i18n="clearFile">Clear</button>
+        </div>
+        <div class="logo-settings" id="logoSettings" style="display:none">
+          <div class="form-row">
+            <label data-i18n="logoPosition">Position</label>
+            <select id="logoPosition">
+              <option value="top_right"    data-i18n="posTopRight">Top Right</option>
+              <option value="top_left"     data-i18n="posTopLeft">Top Left</option>
+              <option value="bottom_right" data-i18n="posBotRight">Bottom Right</option>
+              <option value="bottom_left"  data-i18n="posBotLeft">Bottom Left</option>
+              <option value="center"       data-i18n="posCenter">Center</option>
+              <option value="animated"     data-i18n="posAnimated">🌟 Dynamic Animated (Bouncing Across Corners)</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label data-i18n="logoOpacity">Opacity <span id="opacityVal">0.85</span></label>
+            <input type="range" id="logoOpacity" min="0.1" max="1" step="0.05" value="0.85"
+                   oninput="document.getElementById('opacityVal').textContent=this.value">
+          </div>
+          <div class="form-row">
+            <label data-i18n="logoScale">Scale <span id="scaleVal">12%</span></label>
+            <input type="range" id="logoScale" min="0.04" max="0.4" step="0.01" value="0.12"
+                   oninput="document.getElementById('scaleVal').textContent=Math.round(this.value*100)+'%'">
+          </div>
+          <div class="form-row">
+            <label data-i18n="logoMargin">Margin (px)</label>
+            <input type="number" id="logoMargin" value="20" min="0" max="100">
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Folder -->
+      <div class="card">
+        <div class="card-label" data-i18n="outputFolder">Output Folder</div>
+        <div class="path-row">
+          <input type="text" id="outputFolderPath" class="path-input" placeholder="./output (default)">
+          <button class="btn-icon" onclick="openBrowser('outputFolder')" title="Browse">📁</button>
+        </div>
+      </div>
+
+    </div><!-- /input-grid -->
+  </section>
+
+  <!-- ─── TAB: DEDICATED AI STUDIO ─── -->
+  <section class="tab-panel" id="tab-ai">
+    <div class="panel-header">
+      <h2 data-i18n="aiStudioTitle">AI Prompt-to-Edit Studio</h2>
+      <p class="panel-sub" data-i18n="aiStudioSub">Control your entire video studio using natural language commands powered by AI.</p>
+    </div>
+    
+    <div class="settings-grid">
+      
+      <!-- Card 1: Natural Language Instructions -->
+      <div class="card full-width">
+        <div class="card-label" data-i18n="aiPromptCardTitle">💬 Natural Language Editing Instructions</div>
+        <div class="settings-group">
+          
+          <div class="prompt-dropdown-row">
+            <label class="dropdown-label" data-i18n="promptSelectLabel">✨ Select Smart Suggested Prompt Template:</label>
+            <select id="aiTabPromptDropdown" class="prompt-suggest-dropdown" onchange="onSelectSuggestedPrompt(this.value, 'tab')">
+              <option value="" data-i18n="promptSelectPlaceholder">-- 💡 Select a Smart Prompt Template --</option>
+              <option value="full_auto" data-i18n="promptTplFull">🔀 Full Auto: Silence Trim + Intro/Outro + Bouncing Logo + 720p</option>
+              <option value="silence_trim" data-i18n="promptTplSilence">🔇 Trim Dead Silence: Remove gaps &gt; 0.7s with -35dB threshold</option>
+              <option value="compress_whatsapp" data-i18n="promptTplCompress">🗜️ WhatsApp &amp; Discord 720p: Compress file size with CRF 23</option>
+              <option value="watermark_bounce" data-i18n="promptTplWatermark">🔖 Animated Watermark: Bounce logo across 4 corners at 80% opacity</option>
+              <option value="intro_outro_weld" data-i18n="promptTplIntroOutro">🎬 Intro &amp; Outro Weld: Normalize resolution with smooth 0.8s fade</option>
+              <option value="slideshow_album" data-i18n="promptTplSlideshow">🖼️ Photo Slideshow Album: Turn photos into HD video album (3s/slide)</option>
+            </select>
+          </div>
+
+          <label data-i18n="aiPromptLabel" style="margin-top:10px;">Describe what you want WVideoFlow to do with your videos in natural language:</label>
+          <textarea id="aiTabPromptInput" class="ai-textarea" rows="3"
+                    data-i18n="aiPromptPlaceholder" data-i18n-attr="placeholder"
+                    placeholder="e.g. Cut out silence gaps, compress video for WhatsApp 720p, overlay watermark logo on top-right at 80% opacity with fade transition"></textarea>
+          
+          <div class="usage-chips-bar">
+            <span class="chips-label" data-i18n="usageCommandsTitle">💡 Usage Commands & Quick Prompts:</span>
+            <button class="chip-btn" onclick="applyUsageCommand('cut_silence_compress')" data-i18n="cmdCutSilenceCompress">🔇 Cut silence & compress 720p</button>
+            <button class="chip-btn" onclick="applyUsageCommand('watermark_bounce')" data-i18n="cmdWatermarkBounce">🔖 Overlay animated logo watermark</button>
+            <button class="chip-btn" onclick="applyUsageCommand('intro_outro_fade')" data-i18n="cmdIntroOutroFade">🎬 Weld Intro/Outro with Fade</button>
+            <button class="chip-btn" onclick="applyUsageCommand('slideshow_3s')" data-i18n="cmdSlideshow3s">🖼️ Create Photo Album Slideshow</button>
+          </div>
+
+          <div class="ai-action-row">
+            <button class="btn-primary" onclick="parseAiPrompt('tab')" data-i18n="aiApplyBtn">✨ Auto-Configure Studio Settings</button>
+            <span id="aiTabStatus" class="ai-status-text"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: AI Result & Auto-Configuration Summary -->
+      <div class="card full-width" id="aiResultCard" style="display:none">
+        <div class="card-label" data-i18n="aiResultTitle">📋 AI Configured Settings Summary</div>
+        <div id="aiResultBody" class="ai-result-box"></div>
+      </div>
+
+      <!-- Card 3: Quick Navigation to Key Management -->
+      <div class="card full-width key-shortcut-card">
+        <div class="key-shortcut-body">
+          <div>
+            <strong data-i18n="aiKeysTitle">🔑 API Key Management & Failover Pool</strong>
+            <p data-i18n="aiKeysDesc">Configure OpenRouter, Google Gemini, Groq, or OpenAI API keys for instant AI prompt execution.</p>
+          </div>
+          <button class="btn-ghost" onclick="switchToTab('keys')" data-i18n="manageKeysBtn">Go to Key Management ➔</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── TAB: KEY MANAGEMENT ─── -->
+  <section class="tab-panel" id="tab-keys">
+    <div class="panel-header">
+      <h2 data-i18n="aiKeysTitle">🔑 API Key Management & Providers</h2>
+      <p class="panel-sub" data-i18n="keysSub">Configure multi-provider API keys and automatic key rotation pools.</p>
+    </div>
+    
+    <div class="settings-grid">
+      
+      <!-- Key Entry Form Card -->
+      <div class="card full-width">
+        <div class="card-label" data-i18n="aiKeysTitle">🔑 API Provider & Multi-Key Pool</div>
+        <p class="hint" style="margin-bottom:12px;" data-i18n="aiKeysDesc">
+          Configure your AI providers (OpenRouter, Google Gemini, Groq, OpenAI). You can add MULTIPLE keys per provider (one key per line) for automatic failover & rotation!
+        </p>
+
+        <div class="settings-group">
+          <div class="form-row">
+            <label data-i18n="aiProviderLabel">Select AI Provider</label>
+            <select id="aiProviderSelect" onchange="onAiProviderChange(this.value)">
+              <option value="openrouter">🌐 OpenRouter API (Supports Free Models: Llama 3.3 70B, DeepSeek R1, Gemini 2.0)</option>
+              <option value="gemini">🟢 Google Gemini API (Free & Direct)</option>
+              <option value="groq">⚡ Groq API (Ultra-Fast LLM Inference)</option>
+              <option value="openai">🤖 OpenAI API (GPT-4o / GPT-4o-mini)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label data-i18n="aiMultiKeysLabel">API Key Pool (Paste 1 or more keys - line separated)</label>
+            <textarea id="aiMultiKeysInput" class="ai-textarea mono" rows="4" placeholder="sk-or-v1-key1...&#10;sk-or-v1-key2..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <label data-i18n="aiModelLabel">Custom Model Name / ID (Optional)</label>
+            <input type="text" id="aiModelInput" class="path-input" placeholder="e.g., meta-llama/llama-3.3-70b-instruct:free">
+          </div>
+
+          <div class="form-actions-row">
+            <button class="btn-primary" onclick="saveAiKeysConfig()" data-i18n="aiSaveKeysBtn">Save API Keys & Config 💾</button>
+            <span id="aiKeysStatus" class="ai-status-text"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISIBLE & EDITABLE SAVED API KEYS LIST CARD -->
+      <div class="card full-width" id="savedKeyPoolCard">
+        <div class="card-header-row">
+          <div class="card-label" data-i18n="savedKeysCardTitle">🔑 Saved API Key Pool & Key Manager</div>
+          <button class="btn-ghost tiny danger" onclick="clearAllStoredKeys()" data-i18n="clearAllKeysBtn">Clear All Stored Keys 🗑️</button>
+        </div>
+        
+        <div id="savedKeysListContainer" class="keys-manager-list">
+          <div class="empty-state" data-i18n="noSavedKeysNotice">No active API keys stored yet. Paste your keys above and click Save!</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── TAB: TRANSITIONS ─── -->
+  <section class="tab-panel" id="tab-transitions">
+    <div class="panel-header">
+      <h2 data-i18n="transTitle">Transition Effects</h2>
+      <p class="panel-sub" data-i18n="transSubtitle">Choose how clips connect. Click to preview.</p>
+    </div>
+    <div class="trans-toolbar">
+      <div class="cat-filters" id="catFilters"></div>
+      <div class="trans-right-tools">
+        <div class="form-row inline">
+          <label data-i18n="transitionDuration">Duration</label>
+          <input type="number" id="transitionDuration" value="0.6" min="0.2" max="2.0" step="0.1" style="width:70px"> s
+        </div>
+        <button class="btn-primary small" onclick="previewAllTransitions()" data-i18n="previewAll">Preview All</button>
+      </div>
+    </div>
+    <div id="transitionGrid" class="transition-grid"></div>
+    <div class="selected-trans-bar" id="selectedTransBar">
+      <span data-i18n="selectedTransition">Selected</span>: <strong id="selectedTransName">Fade</strong>
+    </div>
+  </section>
+
+  <!-- ─── TAB: SETTINGS ─── -->
+  <section class="tab-panel" id="tab-settings">
+    <div class="panel-header">
+      <h2 data-i18n="settingsTitle">Processing Settings</h2>
+    </div>
+    <div class="settings-grid">
+
+      <!-- Resource Profile / Throttling Settings -->
+      <div class="card full-width">
+        <div class="card-label" data-i18n="resourceSection">System Resource Profile (Hardware Optimization)</div>
+        <div class="resource-selector">
+          <label class="radio-card active" id="profileEcoCard">
+            <input type="radio" name="resourceProfile" value="eco" checked onclick="selectResourceProfile('eco')">
+            <div class="radio-body">
+              <strong data-i18n="resourceEco">🍃 Eco / Low Specs (Throttled max 70% CPU)</strong>
+              <p>Protects CPU/RAM from overload. Automatically sleeps between video cuts to prevent system freeze on low/mid PC specs.</p>
+            </div>
+          </label>
+
+          <label class="radio-card" id="profileBalancedCard">
+            <input type="radio" name="resourceProfile" value="balanced" onclick="selectResourceProfile('balanced')">
+            <div class="radio-body">
+              <strong data-i18n="resourceBalanced">⚖️ Balanced (Recommended for mid PCs)</strong>
+              <p>Balanced speed and resource consumption. Uses up to 50% CPU threads with soft throttling if RAM is high.</p>
+            </div>
+          </label>
+
+          <label class="radio-card" id="profilePerfCard">
+            <input type="radio" name="resourceProfile" value="performance" onclick="selectResourceProfile('performance')">
+            <div class="radio-body">
+              <strong data-i18n="resourcePerformance">⚡ High Performance (Full Multi-threading)</strong>
+              <p>Uses maximum available CPU threads for fast rendering on powerful workstations.</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Silence Removal -->
+      <div class="card full-width" id="settingsSilenceCard">
+        <div class="card-label with-toggle">
+          <span data-i18n="silenceSection">Silence Removal</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="silenceEnabled" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div id="silenceOptions" class="settings-group">
+          <div class="setting-item">
+            <label data-i18n="silenceThreshold">Silence Threshold (dB)</label>
+            <div class="range-row">
+              <input type="range" id="silenceThreshold" min="-60" max="-10" value="-35"
+                     oninput="document.getElementById('threshVal').textContent=this.value+'dB'">
+              <span id="threshVal" class="val-badge">-35dB</span>
+            </div>
+            <div class="hint" data-i18n="silenceThresholdHint">Lower = more sensitive</div>
+          </div>
+          <div class="setting-item">
+            <label data-i18n="minSilence">Min Silence Duration (s)</label>
+            <div class="range-row">
+              <input type="range" id="minSilence" min="0.1" max="3.0" step="0.1" value="0.7"
+                     oninput="document.getElementById('minSilVal').textContent=this.value+'s'">
+              <span id="minSilVal" class="val-badge">0.7s</span>
+            </div>
+            <div class="hint" data-i18n="minSilenceHint">Gaps shorter than this won't be removed</div>
+          </div>
+          <div class="setting-item">
+            <label data-i18n="silencePadding">Silence Padding (s)</label>
+            <div class="range-row">
+              <input type="range" id="silencePadding" min="0" max="1.0" step="0.05" value="0.15"
+                     oninput="document.getElementById('padVal').textContent=this.value+'s'">
+              <span id="padVal" class="val-badge">0.15s</span>
+            </div>
+            <div class="hint" data-i18n="silencePaddingHint">Keep this much audio around cuts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-Save & Reset Settings Card -->
+      <div class="card full-width reset-settings-card">
+        <div class="reset-row">
+          <div class="reset-info">
+            <strong data-i18n="autoSavedNotice">Settings auto-saved automatically</strong>
+            <p>All your preferences, paths, and settings are saved continuously in your browser. Click below to restore original factory settings.</p>
+          </div>
+          <button class="btn-ghost danger" onclick="resetDefaultSettings()" data-i18n="resetDefaultsBtn">Restore Default Settings 🔄</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── TAB: OUTPUTS & HISTORY ─── -->
+  <section class="tab-panel" id="tab-outputs">
+    <div class="panel-header">
+      <h2 data-i18n="outputsTitle">Recent Outputs & History</h2>
+      <button class="btn-ghost small" onclick="loadOutputsAndHistory()">🔄 Refresh List</button>
+    </div>
+
+    <div class="outputs-container">
+      <div id="outputsGallery" class="outputs-grid"></div>
+      <div id="noOutputsMsg" class="empty-state" style="display:none" data-i18n="noOutputsFound">
+        No processed videos found yet.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TAB: PROCESS ─── -->
+  <section class="tab-panel" id="tab-process">
+    <div class="panel-header">
+      <h2 data-i18n="processTitle">Process Media</h2>
+    </div>
+
+    <!-- Summary -->
+    <div class="process-summary card" id="processSummary"></div>
+
+    <!-- Start Button -->
+    <div class="process-actions">
+      <button class="btn-start" id="startBtn" onclick="startProcessing()" data-i18n="startBtn">
+        ▶ Start Processing
+      </button>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="progress-section" id="progressSection" style="display:none">
+      <div class="progress-card">
+        <div class="progress-header">
+          <span id="progressLabel" data-i18n="processingStatus">Processing in background...</span>
+          <span id="progressCounter">0 / 0</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar" style="width:0%">
+            <div class="progress-shimmer"></div>
+          </div>
+        </div>
+        <div class="progress-meta">
+          <span id="currentFileLabel">–</span>
+          <span id="elapsedLabel">0s</span>
+        </div>
+      </div>
+
+      <div class="done-banner" id="doneBanner" style="display:none">
+        <div class="done-icon">🎉</div>
+        <div class="done-text">
+          <strong data-i18n="doneStatus">Done!</strong>
+          <span id="doneSummary"></span>
+        </div>
+        <button class="btn-primary" onclick="openOutputFolder()" data-i18n="openOutputBtn">Open Output Folder</button>
+      </div>
+
+      <div class="log-card">
+        <div class="log-header" data-i18n="logTitle">Processing Log</div>
+        <div id="processLog" class="process-log"></div>
+      </div>
+    </div>
+  </section>
+
+</main><!-- /mainContent -->
+
+<!-- ════════ WELCOME & AGREEMENT INTRO MODAL ════════ -->
+<div class="modal-overlay open" id="welcomeModal">
+  <div class="modal-box welcome-box">
+    <div class="welcome-header">
+      <div class="welcome-badge">🎬 WVideoFlow</div>
+      <h2 data-i18n="welcomeTitle">Welcome to WVideoFlow</h2>
+      <p class="welcome-sub" data-i18n="welcomeSub">Automated video editing & processing designed for content creators.</p>
+    </div>
+    <div class="welcome-body">
+      <p data-i18n="welcomeDesc">
+        WVideoFlow provides high-performance video tools optimized for low and mid-tier devices. Enjoy silence removal, HandBrake-style compression, animated watermarks, intro/outro welding, and photo slideshow albums without system lag.
+      </p>
+      <div class="feature-bullets">
+        <div class="bullet-item"><span data-i18n="feat1">⚡ Smart CPU Throttling: Keeps CPU under 70% to prevent freezes.</span></div>
+        <div class="bullet-item"><span data-i18n="feat2">🎞️ Universal Format Support: Handles MP4, MKV, AVI, MOV, WMV, MP3, WAV & more.</span></div>
+        <div class="bullet-item"><span data-i18n="feat3">🔒 100% Local & Private: Processing happens on your local device.</span></div>
+      </div>
+    </div>
+    <div class="welcome-footer">
+      <button class="btn-primary btn-agree" onclick="agreeAndStart()" data-i18n="agreeBtn">Agree & Get Started</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ FILE BROWSER MODAL ════════ -->
+<div class="modal-overlay" id="browserModal" onclick="closeBrowser(event)">
+  <div class="modal-box browser-box">
+    <div class="modal-header">
+      <span data-i18n="browserTitle">Browse Files</span>
+      <button class="modal-close" onclick="closeBrowserModal()">✕</button>
+    </div>
+    <div class="browser-path-bar">
+      <button class="btn-ghost small" onclick="browserNav(browserParent)" id="browserBackBtn" data-i18n="browserBack">↑ Parent</button>
+      <span id="browserCurrentPath" class="browser-path"></span>
+    </div>
+    <div id="browserList" class="browser-list"></div>
+    <div class="modal-footer">
+      <span id="browserSelectedLabel" class="browser-selected-label"></span>
+      <div class="modal-footer-actions">
+        <button class="btn-ghost" onclick="closeBrowserModal()" data-i18n="browserCancel">Cancel</button>
+        <button class="btn-primary" id="browserSelectBtn" onclick="confirmBrowserSelection()" data-i18n="browserSelect">Select</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ VIDEO PREVIEW MODAL ════════ -->
+<div class="modal-overlay" id="videoModal" onclick="closeVideoModal(event)">
+  <div class="modal-box video-box">
+    <div class="modal-header">
+      <span id="videoModalTitle" data-i18n="previewTitle">Media Preview</span>
+      <button class="modal-close" onclick="closeVideoModal()">✕</button>
+    </div>
+    <video id="modalVideo" controls class="modal-video"></video>
+    <div id="videoInfoBar" class="video-info-bar"></div>
+  </div>
+</div>
+
+<!-- ════════ TRANSITION PREVIEW MODAL ════════ -->
+<div class="modal-overlay" id="transModal" onclick="closeTransModal(event)">
+  <div class="modal-box trans-preview-box">
+    <div class="modal-header">
+      <span id="transModalTitle">Transition Preview</span>
+      <button class="modal-close" onclick="closeTransModal()">✕</button>
+    </div>
+    <video id="transModalVideo" autoplay loop controls class="trans-preview-video"></video>
+    <div class="trans-modal-actions">
+      <button class="btn-primary" id="transSelectBtn" onclick="selectTransitionFromModal()">✓ Use This Transition</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

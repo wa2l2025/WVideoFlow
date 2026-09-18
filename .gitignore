@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App specific - do NOT commit these
+uploads/
+output/
+static/previews/
+*.log
+*.db
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Keep these folders but not content
+!uploads/.gitkeep
+!output/.gitkeep
+!static/previews/.gitkeep
