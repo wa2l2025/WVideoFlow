@@ -169,7 +169,7 @@ def throttle_cpu_if_needed(profile="eco"):
 # ─────────────────────────────────────────────────────────────
 # AI Prompt-to-Edit Engine (Multi-Provider & Multi-Key Failover)
 # ─────────────────────────────────────────────────────────────
-AI_SYSTEM_PROMPT = """You are WVideoFlow AI Assistant. Parse the user's natural language instruction for video editing/processing and output a JSON configuration matching WVideoFlow studio settings.
+AI_SYSTEM_PROMPT = """You are WVideoFlow Studio Engine. Parse the user's natural language instruction for video editing/processing and output a JSON configuration matching WVideoFlow studio settings.
 
 JSON Schema to return (ONLY JSON, NO MARKDOWN, NO OTHER TEXT):
 {
