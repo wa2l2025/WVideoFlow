@@ -110,7 +110,7 @@ const I18N = {
     defaultsRestoredNotice: "Default settings restored successfully",
 
     // Nav & System
-    navInput: "Input", navTransitions: "Transitions", navSettings: "Settings", navOutputs: "Outputs & History", navProcess: "Process",
+    navInput: "📥 Input & Media", navTransitions: "✨ Transitions", navSettings: "⚙️ Settings", navOutputs: "📁 Outputs & History", navProcess: "⚡ Render & Process",
     resourceSection: "System Resource Profile (Hardware Optimization)",
     resourceEco: "🍃 Eco / Low Specs (Throttled max 70% CPU)",
     resourceBalanced: "⚖️ Balanced (Recommended for mid PCs)",
@@ -294,7 +294,7 @@ const I18N = {
     autoSavedNotice: "تم حفظ الإعدادات تلقائياً",
     defaultsRestoredNotice: "تم استعادة الإعدادات الافتراضية بنجاح",
 
-    navInput: "المدخلات", navTransitions: "الانتقالات", navSettings: "الإعدادات", navOutputs: "المخرجات والسجل", navProcess: "المعالجة",
+    navInput: "📥 الوسائط والإدخال", navTransitions: "✨ الانتقالات البصرية", navSettings: "⚙️ الإعدادات", navOutputs: "📁 المخرجات والسجل", navProcess: "⚡ المعالجة والتصدير",
     resourceSection: "نمط استهلاك الموارد (تحسين للأجهزة الضعيفة والمتوسطة)",
     resourceEco: "🍃 النمط الاقتصادي / الأجهزة الضعيفة (حد أقصى 70% CPU للمنع من التهنيج)",
     resourceBalanced: "⚖️ النمط المتوازن (موصى به للأجهزة المتوسطة)",
@@ -473,7 +473,7 @@ const I18N = {
     autoSavedNotice: "Paramètres sauvegardés automatiquement",
     defaultsRestoredNotice: "Paramètres par défaut restaurés",
 
-    navInput: "Entrée", navTransitions: "Transitions", navSettings: "Paramètres", navOutputs: "Sorties & Historique", navProcess: "Traitement",
+    navInput: "📥 Entrée & Médias", navTransitions: "✨ Transitions", navSettings: "⚙️ Paramètres", navOutputs: "📁 Sorties & Historique", navProcess: "⚡ Rendu & Traitement",
     resourceSection: "Profil de Ressources Système (Optimisation Matérielle)",
     resourceEco: "🍃 Éco / Faibles Spécifications (Max 70% CPU)",
     resourceBalanced: "⚖️ Équilibré (Recommandé pour PC moyens)",
