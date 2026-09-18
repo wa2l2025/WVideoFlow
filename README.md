@@ -21,6 +21,24 @@
 
 WVideoFlow is specifically built to run smoothly on **weak and medium-tier hardware** (CPU-only systems), featuring an **adaptive resource throttling engine** that monitors CPU/RAM usage in real-time and prevents system freezing or overheating.
 
+## 🖼️ Application Interface & Screenshots
+
+<div align="center">
+  <img src="docs/screenshots/wvideoflow_main_ui.png" alt="WVideoFlow Main Studio UI" width="90%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+  <p><em>WVideoFlow Main Editing Interface — Timeline, Silence Waveform Trimming, Transitions Library & System Throttling Monitor</em></p>
+  <br/>
+  <img src="docs/screenshots/wvideoflow_ai_studio.png" alt="WVideoFlow AI Studio & Key Management" width="90%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+  <p><em>AI Prompt-to-Edit Studio — Natural Language Prompting, Multi-Provider API Key Rotation & Live Execution Logs</em></p>
+</div>
+
+---
+
+## 🏷️ GitHub Topics & SEO Tags
+
+To maximize repository discoverability on GitHub, add the following topics to your repository settings (`About ⚙️ -> Topics`):
+
+`video-editor` • `ffmpeg` • `ai-video-editor` • `silence-remover` • `flask` • `python` • `openrouter` • `gemini-api` • `groq` • `openai` • `handbrake` • `low-resource` • `multilingual` • `video-processing` • `video-editing-automation`
+
 ---
 
 ## 👤 Maintainer & Contact
